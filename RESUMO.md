@@ -143,3 +143,38 @@ Para começar do zero: `npm run seed -- --reset` (apaga só o histórico local d
 2. Configure o webhook na Meta: `https://SEU-DOMINIO/webhooks/whatsapp`, com o mesmo verify token.
 3. Troque para `WHATSAPP_MODE=real` e reinicie. O painel passa a mostrar "WhatsApp REAL".
 4. Só depois de ligar a fonte de dados real (`DATA_SOURCE=proxysevo`).
+
+---
+
+# Nano — assistente de voz (pasta `nano-assistente/`)
+
+Você pediu um "Alexa": falar **"Bom dia, Nano"**, ouvir **as suas coisas**, **abrir pastas** e **tocar música**. Está pronto.
+
+**Como funciona:**
+- Roda no seu computador, como aplicativo. O `Iniciar Nano.bat` abre o Nano numa janela própria do Edge.
+- Não precisa de servidor, domínio nem Supabase, porque é o seu computador que abre as pastas e toca as músicas.
+
+**O que ele faz:**
+- Responde "bom dia / boa tarde / boa noite" pelo seu nome e conta quantos compromissos e tarefas você tem. Se você disser "sim", ele fala tudo.
+- "Fala minhas coisas": a data, os compromissos de hoje, as tarefas pendentes, as cobranças da régua e o aviso se tem algo amanhã.
+- Abre pastas (Downloads, Documentos, Área de trabalho etc., e as que você cadastrar) e sites (YouTube, WhatsApp, Gmail, o painel...).
+- Toca música da sua pasta, com pausar, continuar, próxima e volume por voz. O que não estiver na pasta, abre no YouTube ou no Spotify.
+- Anota tarefas, marca compromissos ("amanhã às 10", "segunda às 14:30", "às 8 e meia da noite") e avisa 30 minutos antes, por voz e com notificação.
+- Responde perguntas livres pelo Claude, se você colocar uma chave da Anthropic (opcional).
+- Tela com agenda: tarefas "todo dia", que voltam desmarcadas a cada manhã, e compromissos que se repetem.
+
+**Segurança:** o Nano só aceita conexões do próprio computador e não executa comandos livres. Nenhum site aberto no navegador consegue mandar ele abrir pastas.
+
+**Testes:** 27 testes automatizados (`cd nano-assistente && npm test`) e teste da tela no navegador. O reconhecimento de voz em si não foi testado aqui: ele precisa de microfone e do Edge ou Chrome de verdade.
+
+**Para testar amanhã:** abra `nano-assistente/LEIA-ME.md`. Em resumo:
+1. Instale o Node.js.
+2. Baixe o ZIP da branch e descompacte.
+3. Clique duas vezes em `Iniciar Nano.bat`.
+4. Marque "Escuta contínua" e permita o microfone.
+5. Diga "Bom dia, Nano".
+
+**O que depende de você (Nano):**
+1. Colocar seu nome, suas pastas e sua pasta de músicas no `.env` (o LEIA-ME mostra como).
+2. (Opcional) Uma chave da API da Anthropic, para ele responder qualquer pergunta. Tem custo por uso.
+3. (Opcional) Ligar as cobranças: precisa da régua no ar num servidor (ver acima). Depois é só colocar o endereço e o token no `.env` do Nano.
