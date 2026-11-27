@@ -1,8 +1,8 @@
 # Fonte de dados: como ligar a régua aos dados reais da ProxysEvo
 
 A régua não sabe onde moram os clientes, os proxies e o saldo da ProxysEvo: ela lê por uma
-**fonte de dados** com 4 funções, todas **só de leitura**. Hoje existe só a fonte `demo` (dados fictícios).
-Para produção, crie `src/source/proxysevo.js` e registre em `src/source/index.js` (`DATA_SOURCE=proxysevo`).
+**fonte de dados** com 4 funções, todas **só de leitura**. Existem duas fontes: `demo` (dados fictícios) e `proxysevo` (`src/source/http.js`, que lê um endpoint interno
+da ProxysEvo — contrato em `docs/endpoint-proxysevo.md`). Se preferir ler direto do banco, crie outra fonte com o contrato abaixo.
 
 ## O contrato
 

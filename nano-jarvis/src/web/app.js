@@ -100,6 +100,7 @@ async function loadOverview() {
   const badges = $('#badges');
   badges.replaceChildren(
     el('span', { class: `badge ${o.whatsappMode === 'real' ? 'ok' : 'warn'}` }, o.whatsappMode === 'real' ? 'WhatsApp REAL' : 'WhatsApp SIMULADO'),
+    ...o.channels.filter((c) => c.name === 'email').map((c) => el('span', { class: `badge ${c.simulated ? 'warn' : 'ok'}` }, c.simulated ? 'E-mail SIMULADO' : 'E-mail REAL')),
     el('span', { class: `badge ${o.dataSource === 'demo' ? 'warn' : ''}` }, `Fonte: ${o.dataSource === 'demo' ? 'dados de demonstração' : o.dataSource}`),
     el('span', { class: 'badge' }, `Preço ref.: ${brl(o.priceCents)}/proxy`),
   );

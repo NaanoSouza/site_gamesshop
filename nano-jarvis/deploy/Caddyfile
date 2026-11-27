@@ -1,0 +1,5 @@
+# Troque pelo seu subdomínio (o DNS precisa apontar para o servidor).
+regua.seudominio.com.br {
+	encode gzip
+	reverse_proxy regua:3780
+}

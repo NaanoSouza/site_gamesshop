@@ -10,8 +10,9 @@ Branch: `feature/regua-cobranca` · Pasta: `nano-jarvis/` · Nada foi publicado 
    - `AtivosEvoPainel` é outro negócio (BMs, CNPJs, WABA).
 
    Por isso construí a régua como um **serviço separado** (`nano-jarvis/`) que lê os dados por uma "fonte de dados" plugável.
-   Hoje ele roda com **dados fictícios** (`DATA_SOURCE=demo`). Para usar com dados reais, falta escrever **um arquivo**
-   (`src/source/proxysevo.js`); o passo a passo está em `nano-jarvis/src/source/README.md`.
+   O conector real já está pronto (`DATA_SOURCE=proxysevo`): ele lê de um **endpoint interno** que a ProxysEvo precisa expor.
+   São 3 rotas GET só de leitura, especificadas em `nano-jarvis/docs/endpoint-proxysevo.md`, com exemplo de implementação.
+   Enquanto esse endpoint não existe, use os dados fictícios (`DATA_SOURCE=demo`) ou o **mock** (`npm run mock-proxysevo`), que imita o endpoint.
    A aba "Cobranças" também é um painel próprio do serviço (`/admin`), já que o painel admin da ProxysEvo não está acessível.
    Ela pode virar uma aba do painel real depois, chamando a mesma API.
 
@@ -41,14 +42,16 @@ Branch: `feature/regua-cobranca` · Pasta: `nano-jarvis/` · Nada foi publicado 
 - **WhatsApp Cloud API oficial da Meta**, em modo **SIMULADO** por padrão: só registra no log e no banco (status `simulado`).
   O modo real já está implementado (templates com as 7 variáveis: nome, quantidade, portas, vencimento, valor necessário, saldo atual, link de recarga).
   Ele só liga com `WHATSAPP_MODE=real` + credenciais. Sem credenciais, continua simulado mesmo que você peça "real".
-- **E-mail** como reforço: simulado (só log e banco).
+- **E-mail** como reforço: simulado por padrão. O envio **real por SMTP com TLS** já está implementado (sem dependências) e liga com `EMAIL_MODE=real` + `SMTP_*`.
+- **Resumo diário para o dono**: depois da rodada das 09h, sai um resumo no log e, se `OWNER_EMAIL` estiver preenchido, por e-mail.
+  Ele diz quem recebeu, quanto falta, quem renovou ou recarregou e quem não foi cobrado (e avisa se a régua estava desligada ou falhou).
 - **Webhook da Meta** (`/webhooks/whatsapp`): atualiza o status de entrega (enviado → entregue → lido / falhou) e trata o **opt-out da LGPD**.
   Quem responde "PARAR", "SAIR", "STOP" ou "CANCELAR" entra na lista "não cobrar" como opt-out. Exige assinatura válida da Meta (`WHATSAPP_APP_SECRET`).
 
 **Painel admin — aba "Cobranças"** (`http://127.0.0.1:3780/admin`, protegido por `ADMIN_TOKEN`):
 - Liga/desliga geral da régua. **Ela começa DESLIGADA**: nada sai até você ligar.
 - Indicadores: em cobrança, renovaram, recarregaram, encerrados, lista "não cobrar", mensagens no mês, custo real e custo projetado se o WhatsApp simulado fosse real.
-- **Histórico de envios** com filtros (etapa, status, cliente) e o texto de cada mensagem.
+- **Histórico de envios** com filtros (etapa, status, cliente), o texto de cada mensagem e o botão **"Reenviar"** para envio que falhou ou ficou incerto (protegido contra duplo clique).
 - **Vencimentos**: quem recebeu lembrete, quando, última etapa e quem já renovou ou recarregou.
 - **"Não cobrar"** com motivo obrigatório, **"Voltar a cobrar"** e o histórico de quem mudou o quê.
 - **Editor dos textos** de cada etapa, com validação das variáveis.
@@ -63,7 +66,10 @@ Branch: `feature/regua-cobranca` · Pasta: `nano-jarvis/` · Nada foi publicado 
 - O token da Meta nunca vai para o log nem para mensagens de erro, e o telefone aparece mascarado no log.
 - A régua **só lê** a fonte de dados; nunca escreve nela.
 
-**Testes:** 70 testes automatizados (`npm test`), todos passando. Cobrem regras, motor (régua completa, idempotência, execuções simultâneas, renovação, recarga, falhas e repetições), WhatsApp, webhook, API do painel e datas/fuso.
+**Deploy pronto:** `Dockerfile`, `deploy/docker-compose.yml` com Caddy (HTTPS automático) e `deploy/nano-jarvis.service` (systemd).
+CI no GitHub Actions (`.github/workflows/nano-jarvis.yml`) roda os testes a cada push. A imagem Docker não foi testada aqui: não havia Docker no ambiente.
+
+**Testes:** 82 testes automatizados (`npm test`), todos passando. Cobrem regras, motor (régua completa, idempotência, execuções simultâneas, renovação, recarga, falhas e repetições), reenvio manual, resumo do dono, WhatsApp, e-mail/SMTP, fonte HTTP da ProxysEvo, webhook, API do painel e datas/fuso.
 
 **Revisão crítica feita no final**, com correções:
 - Botões do painel ficavam travados depois de uma ação.
@@ -71,17 +77,16 @@ Branch: `feature/regua-cobranca` · Pasta: `nano-jarvis/` · Nada foi publicado 
 - A memória do bloqueio de força bruta podia crescer sem limite.
 - Um rótulo errado aparecia numa nova tentativa de envio.
 
-## O que ficou pendente
+## O que ficou pendente (depende de você ou do dev da ProxysEvo)
 
-1. **Fonte de dados real da ProxysEvo** (`src/source/proxysevo.js`): ler direto do banco com um usuário só de SELECT, ou criar um endpoint admin na ProxysEvo. Ver `nano-jarvis/src/source/README.md`.
-2. **Meta**:
-   - Verificar o número na Meta Business e confirmar o modo coexistência.
-   - Criar e aprovar os 5 templates de Utilidade: `cobranca_d7`, `cobranca_d3`, `cobranca_d1`, `cobranca_d0` e `cobranca_recuperacao`, cada um com as 7 variáveis `{{1}}`…`{{7}}` nesta ordem: nome, quantidade, portas, vencimento, valor necessário, saldo atual, link de recarga.
-   - Preencher as credenciais no `.env`.
-3. **E-mail real** (SMTP, por exemplo com nodemailer): hoje é só simulado.
+1. **Endpoint interno na ProxysEvo**: 3 rotas GET, especificadas em `nano-jarvis/docs/endpoint-proxysevo.md`.
+   Depois é só configurar `DATA_SOURCE=proxysevo`, `PROXYSEVO_ADMIN_URL` e `PROXYSEVO_ADMIN_TOKEN`.
+2. **Meta**: verificar o número na Meta Business, confirmar o modo coexistência e aprovar os 5 templates.
+   Os textos prontos para colar estão em `nano-jarvis/docs/templates-meta.md`. Depois, preencher as credenciais e trocar para `WHATSAPP_MODE=real`.
+3. **SMTP** (e-mail real): preencher `SMTP_*`, `EMAIL_MODE=real` e `OWNER_EMAIL`.
 4. **Link de recarga** real em `RECHARGE_LINK` (coloquei `https://app.ativosevo.com/recarga` como palpite).
-5. **Login do painel**: hoje é um único token compartilhado. Para vários admins, usar o login do painel da ProxysEvo.
-6. **Deploy no servidor** (24h): rodar `npm start` com pm2/systemd atrás de HTTPS (Caddy/Nginx), com `HOST=0.0.0.0` só por trás do proxy HTTPS.
+5. **Servidor**: subir com `deploy/docker-compose.yml` (ou systemd) num subdomínio com HTTPS.
+6. **Login do painel**: hoje é um único token compartilhado. Para vários admins, integrar ao login do painel da ProxysEvo.
 7. **Decisões de negócio para confirmar**:
    - O bônus conta para a renovação automática?
    - Cliente com `auto_renew` desligado deve ser avisado mesmo com saldo? Hoje segue o PRD à risca: com saldo, não avisa.
@@ -97,7 +102,7 @@ git fetch origin
 git checkout feature/regua-cobranca
 cd nano-jarvis
 
-# 1. Rodar os testes automatizados (deve mostrar "pass 70, fail 0")
+# 1. Rodar os testes automatizados (deve mostrar "pass 82, fail 0")
 npm test
 
 # 2. Configurar
@@ -126,10 +131,14 @@ No painel:
 5. Em **"Textos"**, edite uma mensagem e salve; uma variável inexistente, como `{{xyz}}`, é recusada.
 6. Para simular outros dias: escolha uma data na prévia, ou rode `npm run regua -- --previa --data=2026-12-01`.
 
+7. Para testar o conector real sem a ProxysEvo: num terminal `npm run mock-proxysevo`; em outro, `DATA_SOURCE=proxysevo PROXYSEVO_ADMIN_URL=http://127.0.0.1:3781 PROXYSEVO_ADMIN_TOKEN=mock-token-local npm run regua -- --previa`.
+   O resultado tem que ser igual ao do passo 4.
+
 Para começar do zero: `npm run seed -- --reset` (apaga só o histórico local da régua e recria os dados fictícios).
 
 ## Quando for ligar o WhatsApp de verdade
 
+0. Os textos para aprovar estão em `nano-jarvis/docs/templates-meta.md`.
 1. Com os templates aprovados, preencha no `.env`: `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET` e `WHATSAPP_VERIFY_TOKEN`.
 2. Configure o webhook na Meta: `https://SEU-DOMINIO/webhooks/whatsapp`, com o mesmo verify token.
 3. Troque para `WHATSAPP_MODE=real` e reinicie. O painel passa a mostrar "WhatsApp REAL".

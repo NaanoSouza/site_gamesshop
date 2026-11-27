@@ -1,0 +1,20 @@
+name: nano-jarvis
+on:
+  push:
+    paths: ['nano-jarvis/**', '.github/workflows/nano-jarvis.yml']
+  pull_request:
+    paths: ['nano-jarvis/**', '.github/workflows/nano-jarvis.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nano-jarvis
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test

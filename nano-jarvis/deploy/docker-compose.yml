@@ -1,0 +1,25 @@
+# Sobe a régua atrás do Caddy (HTTPS automático). Uso: na pasta nano-jarvis/deploy, `docker compose up -d`.
+services:
+  regua:
+    build: ..
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      HOST: 0.0.0.0
+      DB_PATH: /data/nano-jarvis.db
+    volumes:
+      - regua-data:/data
+    expose:
+      - "3780"
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+volumes:
+  regua-data:
+  caddy-data:

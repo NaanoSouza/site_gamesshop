@@ -20,8 +20,11 @@ npm start                   # painel em http://127.0.0.1:3780/admin + agendador 
 | `src/rules.js` | Regras de negócio (etapas, agrupamento, saldo, exclusões, decisão) — funções puras |
 | `src/engine.js` | Execução diária: busca, decide, reserva, envia, registra, fecha ciclos |
 | `src/store.js`, `src/db.js` | Banco da régua (envios, ciclos, "não cobrar", configurações, execuções) |
-| `src/source/` | Fonte de dados (clientes/proxies/saldo). Hoje: `demo`. Ver `src/source/README.md` |
-| `src/channels/` | WhatsApp Cloud API (simulado/real) e e-mail (simulado) |
+| `src/source/` | Fonte de dados: `demo` (fictícia) e `proxysevo` (endpoint HTTP, ver `docs/endpoint-proxysevo.md`) |
+| `src/channels/` | WhatsApp Cloud API e e-mail SMTP (ambos simulados por padrão) |
+| `src/summary.js` | Resumo diário para o dono |
+| `docs/` | Contrato do endpoint da ProxysEvo e textos dos templates da Meta |
+| `deploy/`, `Dockerfile` | Docker + Caddy (HTTPS) e systemd |
 | `src/webhook.js` | Webhook da Meta: status de entrega e opt-out ("PARAR") |
 | `src/app.js`, `src/web/` | API e painel admin, aba "Cobranças" |
 | `src/scheduler.js` | Agendador diário 09h00 America/Sao_Paulo |

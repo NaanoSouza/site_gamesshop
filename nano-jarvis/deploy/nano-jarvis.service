@@ -1,0 +1,22 @@
+# Alternativa sem Docker (systemd). Copie para /etc/systemd/system/ e ajuste os caminhos:
+#   sudo systemctl daemon-reload && sudo systemctl enable --now nano-jarvis
+# Mantenha HOST=127.0.0.1 no .env e coloque um proxy HTTPS (Caddy/Nginx) na frente.
+[Unit]
+Description=Nano Jarvis - régua de cobrança
+After=network-online.target
+
+[Service]
+Type=simple
+User=nanojarvis
+WorkingDirectory=/opt/nano-jarvis
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning src/server.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/nano-jarvis/data
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
