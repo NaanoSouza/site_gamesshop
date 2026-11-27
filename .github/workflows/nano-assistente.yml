@@ -1,0 +1,21 @@
+name: nano-assistente
+on:
+  push:
+    paths: ['nano-assistente/**', '.github/workflows/nano-assistente.yml']
+  pull_request:
+    paths: ['nano-assistente/**', '.github/workflows/nano-assistente.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nano-assistente
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
