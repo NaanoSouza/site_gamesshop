@@ -8,13 +8,15 @@
 // Proxy  = { id, clientId, port, status: 'active'|'suspended'|'expired'|'cancelled'|..., expiresAt: ISO }
 // Client = { id, name, email, whatsapp, balanceCents, bonusBalanceCents, isAdmin, isTest, role? }
 import { createDemoSource } from './demo.js';
+import { createHttpSource } from './http.js';
 
 export function createSource(config, db) {
   switch (config.source) {
     case 'demo':
       return createDemoSource(db);
-    // case 'proxysevo': return createProxysEvoSource(config); // ver src/source/README.md
+    case 'proxysevo':
+      return createHttpSource(config); // endpoint interno da ProxysEvo (docs/endpoint-proxysevo.md)
     default:
-      throw new Error(`DATA_SOURCE desconhecida: "${config.source}". Use "demo" ou implemente a fonte da ProxysEvo (src/source/README.md).`);
+      throw new Error(`DATA_SOURCE desconhecida: "${config.source}". Use "demo" ou "proxysevo".`);
   }
 }

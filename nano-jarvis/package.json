@@ -11,6 +11,7 @@
     "start": "node --disable-warning=ExperimentalWarning src/server.js",
     "seed": "node --disable-warning=ExperimentalWarning scripts/seed-demo.js",
     "regua": "node --disable-warning=ExperimentalWarning scripts/run-once.js",
-    "test": "node --disable-warning=ExperimentalWarning --test"
+    "test": "node --disable-warning=ExperimentalWarning --test",
+    "mock-proxysevo": "node --disable-warning=ExperimentalWarning scripts/mock-proxysevo.js"
   }
 }

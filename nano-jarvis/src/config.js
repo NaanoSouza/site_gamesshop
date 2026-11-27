@@ -53,6 +53,21 @@ export function loadConfig(env = process.env) {
     channels: list(env.CHANNELS || 'whatsapp'),
     maxAttempts: int(env.MAX_SEND_ATTEMPTS, 3),
     source: (env.DATA_SOURCE || 'demo').toLowerCase(),
+    smtp: {
+      mode: (env.EMAIL_MODE || 'simulado').toLowerCase() === 'real' ? 'real' : 'simulado',
+      host: env.SMTP_HOST || '',
+      port: int(env.SMTP_PORT, 587),
+      // true = TLS direto (porta 465). false = STARTTLS (porta 587), obrigatório fora de localhost.
+      secure: bool(env.SMTP_SECURE, false),
+      user: env.SMTP_USER || '',
+      pass: env.SMTP_PASS || '',
+      from: env.SMTP_FROM || '',
+      allowInsecure: bool(env.SMTP_ALLOW_INSECURE_LOCALHOST, false),
+    },
+    proxysevo: {
+      baseUrl: env.PROXYSEVO_ADMIN_URL || '',
+      token: env.PROXYSEVO_ADMIN_TOKEN || '',
+    },
     whatsapp: {
       // "simulado" (padrão): só registra no log e no banco. "real": chama a Cloud API da Meta.
       mode: whatsappMode === 'real' ? 'real' : 'simulado',
