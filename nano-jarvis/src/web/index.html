@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cobranças · Painel ProxysEvo</title>
+  <link rel="stylesheet" href="/admin/app.css">
+  <script src="/admin/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Painel admin <span class="muted">ProxysEvo</span></div>
+    <nav class="tabs" aria-label="Abas do painel">
+      <a class="tab active" aria-current="page" href="/admin">Cobranças</a>
+    </nav>
+    <button id="logout" class="link hidden" type="button">Sair</button>
+  </header>
+
+  <main>
+    <section id="login" class="card narrow hidden">
+      <h1>Entrar</h1>
+      <p class="muted">Informe o token do painel (ADMIN_TOKEN do arquivo .env).</p>
+      <form id="login-form">
+        <label>Token <input id="token" type="password" autocomplete="current-password" required></label>
+        <button type="submit">Entrar</button>
+        <p id="login-error" class="error" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="app" class="hidden">
+      <div class="title-row">
+        <h1>Cobranças</h1>
+        <div id="badges" class="badges"></div>
+      </div>
+
+      <div class="card status-card">
+        <div>
+          <div class="switch-row">
+            <label class="switch">
+              <input id="toggle" type="checkbox">
+              <span class="slider" aria-hidden="true"></span>
+            </label>
+            <div>
+              <strong id="toggle-label">Régua</strong>
+              <div id="toggle-hint" class="muted small"></div>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <label class="small">Data da prévia <input id="preview-date" type="date"></label>
+          <button id="btn-preview" type="button" class="secondary">Ver prévia</button>
+          <button id="btn-run" type="button">Rodar agora</button>
+        </div>
+      </div>
+
+      <div id="kpis" class="kpis"></div>
+      <p id="flash" class="flash hidden" role="status"></p>
+
+      <nav class="subtabs" role="tablist">
+        <button type="button" role="tab" data-tab="sends" class="active">Histórico de envios</button>
+        <button type="button" role="tab" data-tab="cycles">Vencimentos</button>
+        <button type="button" role="tab" data-tab="dnc">Não cobrar</button>
+        <button type="button" role="tab" data-tab="templates">Textos</button>
+        <button type="button" role="tab" data-tab="runs">Execuções</button>
+      </nav>
+
+      <section data-panel="preview" class="card hidden">
+        <div class="title-row"><h2 id="preview-title">Prévia</h2><button id="close-preview" type="button" class="link">Fechar</button></div>
+        <div class="table-wrap"><table id="preview-table"></table></div>
+      </section>
+
+      <section data-panel="sends" class="card">
+        <div class="filters">
+          <select id="f-stage"><option value="">Todas as etapas</option></select>
+          <select id="f-status">
+            <option value="">Todos os status</option>
+            <option>simulado</option><option>enviado</option><option>entregue</option><option>lido</option>
+            <option>falhou</option><option>incerto</option><option>pendente</option>
+          </select>
+          <input id="f-client" placeholder="ID do cliente">
+          <button id="f-apply" type="button" class="secondary">Filtrar</button>
+        </div>
+        <div class="table-wrap"><table id="sends-table"></table></div>
+      </section>
+
+      <section data-panel="cycles" class="card hidden">
+        <p class="muted small">Cada linha é um cliente + data de vencimento que recebeu pelo menos um lembrete. "Renovado" e "Recarregou" param a régua.</p>
+        <div class="filters">
+          <select id="c-status">
+            <option value="">Todos</option>
+            <option value="em_cobranca">Em cobrança</option>
+            <option value="renovado">Renovado</option>
+            <option value="recarregado">Recarregou</option>
+            <option value="encerrado">Encerrado</option>
+          </select>
+        </div>
+        <div class="table-wrap"><table id="cycles-table"></table></div>
+      </section>
+
+      <section data-panel="dnc" class="card hidden">
+        <h2>Marcar "Não cobrar"</h2>
+        <form id="dnc-form" class="dnc-form">
+          <input id="dnc-search" placeholder="Buscar cliente por nome, e-mail ou ID" autocomplete="off">
+          <select id="dnc-client" required><option value="">Selecione o cliente</option></select>
+          <input id="dnc-reason" placeholder="Motivo (obrigatório)" maxlength="300" required>
+          <button type="submit">Não cobrar</button>
+        </form>
+        <h2>Clientes que não são cobrados</h2>
+        <div class="table-wrap"><table id="dnc-table"></table></div>
+        <h2>Histórico de alterações</h2>
+        <div class="table-wrap"><table id="dnc-log"></table></div>
+      </section>
+
+      <section data-panel="templates" class="card hidden">
+        <p class="muted small">
+          Variáveis: <span id="tpl-vars"></span>. No modo simulado e no e-mail sai este texto.
+          No WhatsApp real, a Meta usa o template aprovado lá (categoria Utilidade); mudar aqui não muda o template aprovado.
+        </p>
+        <form id="tpl-form"></form>
+        <div class="actions">
+          <button id="tpl-reset" type="button" class="secondary">Restaurar textos padrão</button>
+          <button id="tpl-save" type="button">Salvar textos</button>
+        </div>
+      </section>
+
+      <section data-panel="runs" class="card hidden">
+        <div class="table-wrap"><table id="runs-table"></table></div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

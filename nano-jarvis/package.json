@@ -1,0 +1,16 @@
+{
+  "name": "nano-jarvis",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nano Jarvis — régua de cobrança automática de vencimentos de proxies da ProxysEvo (Fase 1)",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "seed": "node --disable-warning=ExperimentalWarning scripts/seed-demo.js",
+    "regua": "node --disable-warning=ExperimentalWarning scripts/run-once.js",
+    "test": "node --disable-warning=ExperimentalWarning --test"
+  }
+}
