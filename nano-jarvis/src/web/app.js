@@ -114,7 +114,8 @@ async function loadOverview() {
     k(o.cycles.encerrado || 0, 'Encerrados sem renovar'),
     k(o.doNotChargeCount, 'Na lista "não cobrar"'),
     k(msgs, 'Mensagens no mês'),
-    k(brl(cost), 'Custo estimado no mês'),
+    k(brl(cost), 'Custo real no mês'),
+    k(brl(o.projectedWhatsappCostCents), 'Custo se o WhatsApp simulado fosse real'),
   );
 
   const stageSel = $('#f-stage');
@@ -279,20 +280,22 @@ async function loadTemplates() {
 async function saveTemplates(ev) {
   const templates = {};
   for (const ta of $('#tpl-form').querySelectorAll('textarea')) templates[ta.name] = ta.value;
-  busy(ev.currentTarget, true);
+  const btn = ev.currentTarget;
+  busy(btn, true);
   try {
     await api('PUT', '/api/cobrancas/templates', { templates });
     flash('Textos salvos.');
   } catch (e) {
     flash(e.message, true);
   } finally {
-    busy(ev.currentTarget, false);
+    busy(btn, false);
   }
 }
 
 async function resetTemplates(ev) {
   if (!confirm('Restaurar todos os textos para o padrão?')) return;
-  busy(ev.currentTarget, true);
+  const btn = ev.currentTarget;
+  busy(btn, true);
   try {
     await api('POST', '/api/cobrancas/templates/reset', {});
     await loadTemplates();
@@ -300,15 +303,16 @@ async function resetTemplates(ev) {
   } catch (e) {
     flash(e.message, true);
   } finally {
-    busy(ev.currentTarget, false);
+    busy(btn, false);
   }
 }
 
 // ---------- ações ----------
 async function onToggle(ev) {
-  const enabled = ev.currentTarget.checked;
+  const box = ev.currentTarget;
+  const enabled = box.checked;
   if (!confirm(enabled ? 'Ligar a régua? Ela passa a enviar lembretes todos os dias.' : 'Desligar a régua? Nenhum lembrete será enviado até ligar de novo.')) {
-    ev.currentTarget.checked = !enabled;
+    box.checked = !enabled;
     return;
   }
   try {
@@ -316,13 +320,14 @@ async function onToggle(ev) {
     flash(enabled ? 'Régua ligada.' : 'Régua desligada.');
     await loadOverview();
   } catch (e) {
-    ev.currentTarget.checked = !enabled;
+    box.checked = !enabled;
     flash(e.message, true);
   }
 }
 
 async function onPreview(ev) {
-  busy(ev.currentTarget, true);
+  const btn = ev.currentTarget;
+  busy(btn, true);
   try {
     const date = $('#preview-date').value || undefined;
     const s = await api('POST', '/api/cobrancas/preview', { date });
@@ -346,13 +351,14 @@ async function onPreview(ev) {
   } catch (e) {
     flash(e.message, true);
   } finally {
-    busy(ev.currentTarget, false);
+    busy(btn, false);
   }
 }
 
 async function onRun(ev) {
   if (!confirm('Rodar a régua agora? Envia as etapas de hoje que ainda não saíram (nada é repetido).')) return;
-  busy(ev.currentTarget, true);
+  const btn = ev.currentTarget;
+  busy(btn, true);
   try {
     const s = await api('POST', '/api/cobrancas/run', {});
     flash(s.status === 'regua_desligada' ? 'A régua está desligada: nada foi enviado.' : `Execução concluída: ${s.sent} envio(s), ${s.failed} falha(s).`);
@@ -360,7 +366,7 @@ async function onRun(ev) {
   } catch (e) {
     flash(e.message, true);
   } finally {
-    busy(ev.currentTarget, false);
+    busy(btn, false);
   }
 }
 

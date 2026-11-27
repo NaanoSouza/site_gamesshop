@@ -227,7 +227,7 @@ export function createStore(db) {
     costSummary(sinceIso) {
       return db
         .prepare(
-          `SELECT channel, COUNT(*) AS total, SUM(cost_cents) AS cost_cents, SUM(simulated) AS simulated
+          `SELECT channel, COUNT(*) AS total, COALESCE(SUM(cost_cents), 0) AS cost_cents, COALESCE(SUM(simulated), 0) AS simulated
            FROM sends WHERE created_at >= ? AND status NOT IN ('falhou') GROUP BY channel`,
         )
         .all(sinceIso);

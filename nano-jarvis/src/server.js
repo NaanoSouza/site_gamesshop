@@ -20,7 +20,7 @@ server.listen(config.port, config.host, () => {
 });
 
 const scheduler = config.schedulerEnabled
-  ? startScheduler({ config, logger, run: () => app.runOnce({ trigger: 'cron', dryRun: false }) })
+  ? startScheduler({ config, logger, store: ctx.store, run: () => app.runOnce({ trigger: 'cron', dryRun: false }) })
   : (logger.info('[agendador] desligado (SCHEDULER_ENABLED=false)'), null);
 
 const shutdown = () => {

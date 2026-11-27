@@ -144,6 +144,8 @@ export function createApp({ config, store, source, channels, logger = console })
           : null,
         priceCents: config.proxyPriceCents,
         costsThisMonth: store.costSummary(monthStart),
+        // Quanto as mensagens de WhatsApp simuladas do mês custariam na API real (para avaliar o volume).
+        projectedWhatsappCostCents: (store.costSummary(monthStart).find((c) => c.channel === 'whatsapp')?.simulated || 0) * config.whatsapp.costCentsPerMessage,
         cycles: Object.fromEntries(cycles.map((r) => [r.status, r.n])),
         doNotChargeCount: store.listDoNotCharge().length,
         lastRuns: store.listRuns(10).map((r) => ({ ...r, summary: r.summary ? { ...r.summary, decisions: undefined } : null })),
