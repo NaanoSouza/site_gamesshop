@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f1220">
+  <title>Nano</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main class="wrap">
+    <section class="voice">
+      <button id="orb" class="orb" type="button" aria-label="Falar com o Nano">
+        <span class="ring"></span><span class="core">N</span>
+      </button>
+      <p id="status" class="status" role="status">Carregando…</p>
+      <label class="listen">
+        <input id="always" type="checkbox">
+        <span>Escuta contínua — é só dizer <strong>"Nano, …"</strong></span>
+      </label>
+      <div class="chat" id="chat" aria-live="polite"></div>
+      <form id="ask" class="ask">
+        <input id="text" placeholder='Ou digite: "bom dia", "minhas coisas", "abre downloads"…' autocomplete="off">
+        <button type="submit">Enviar</button>
+      </form>
+      <div id="player" class="player hidden">
+        <span class="note">♪</span>
+        <span id="track" class="track"></span>
+        <button id="pp" type="button" class="icon" aria-label="Pausar">❚❚</button>
+        <button id="next" type="button" class="icon" aria-label="Próxima">⏭</button>
+        <button id="stop" type="button" class="icon" aria-label="Parar">■</button>
+      </div>
+      <p id="hint" class="hint"></p>
+    </section>
+
+    <section class="side">
+      <div class="card">
+        <div class="head"><h2>Hoje</h2><span id="today" class="muted"></span></div>
+        <ul id="tasks" class="list"></ul>
+        <form id="task-form" class="row">
+          <input id="task-text" placeholder="Nova tarefa" maxlength="200" required>
+          <label class="chk"><input id="task-daily" type="checkbox"> todo dia</label>
+          <button type="submit">+</button>
+        </form>
+      </div>
+      <div class="card">
+        <div class="head"><h2>Próximos 7 dias</h2></div>
+        <ul id="events" class="list"></ul>
+        <form id="event-form" class="grid">
+          <input id="ev-title" placeholder="Compromisso" maxlength="200" required>
+          <input id="ev-date" type="date" required>
+          <input id="ev-time" type="time">
+          <select id="ev-rep">
+            <option value="nenhuma">Não repete</option>
+            <option value="diaria">Todo dia</option>
+            <option value="dias_uteis">Dias úteis</option>
+            <option value="semanal">Toda semana</option>
+            <option value="mensal">Todo mês</option>
+          </select>
+          <button type="submit">Adicionar</button>
+        </form>
+      </div>
+    </section>
+  </main>
+  <audio id="audio" preload="none"></audio>
+</body>
+</html>

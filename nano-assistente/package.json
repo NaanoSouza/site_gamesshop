@@ -1,0 +1,15 @@
+{
+  "name": "nano-assistente",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Nano — assistente de voz pessoal (bom dia, suas coisas, abrir pastas, tocar música)",
+  "type": "module",
+  "engines": { "node": ">=22.5.0" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^1.14.0"
+  }
+}
