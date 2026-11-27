@@ -51,6 +51,7 @@ export function loadConfig(env = process.env) {
     ignoreEmailDomains: list(env.IGNORE_EMAIL_DOMAINS),
     ignoreClientIds: list(env.IGNORE_CLIENT_IDS),
     channels: list(env.CHANNELS || 'whatsapp'),
+    ownerEmail: (env.OWNER_EMAIL || '').trim(),
     maxAttempts: int(env.MAX_SEND_ATTEMPTS, 3),
     source: (env.DATA_SOURCE || 'demo').toLowerCase(),
     smtp: {

@@ -146,7 +146,7 @@ async function loadSends() {
   const { sends } = await api('GET', `/api/cobrancas/sends?${p}`);
   table(
     '#sends-table',
-    ['Quando', 'Cliente', 'Vencimento', 'Etapa', 'Canal', 'Status', 'Tent.', 'Mensagem'],
+    ['Quando', 'Cliente', 'Vencimento', 'Etapa', 'Canal', 'Status', 'Tent.', 'Mensagem', ''],
     sends.map((s) => [
       el('td', {}, dateTime(s.created_at)),
       el('td', {}, s.client_id),
@@ -156,9 +156,26 @@ async function loadSends() {
       el('td', { class: `st st-${s.status}`, title: s.error || '' }, s.status + (s.error ? ' ⚠' : '')),
       el('td', { class: 'num' }, s.attempts),
       el('td', { class: 'msg' }, s.message),
+      el('td', {}, ['falhou', 'incerto'].includes(s.status) ? el('button', { type: 'button', class: 'secondary', onclick: (ev) => resend(s, ev.currentTarget) }, 'Reenviar') : ''),
     ]),
     'Nenhum envio registrado.',
   );
+}
+
+async function resend(s, btn) {
+  const warn = s.status === 'incerto'
+    ? 'Este envio ficou INCERTO: pode ser que o cliente já tenha recebido. Reenviar mesmo assim?'
+    : `Reenviar a etapa ${s.stage} (${s.channel}) para o cliente ${s.client_id}?`;
+  if (!confirm(warn)) return;
+  busy(btn, true);
+  try {
+    const r = await api('POST', '/api/cobrancas/resend', { id: s.id });
+    flash(`Reenviado: ${r.status}.`);
+    await loadSends();
+  } catch (e) {
+    flash(e.message, true);
+    busy(btn, false);
+  }
 }
 
 // ---------- vencimentos (ciclos) ----------

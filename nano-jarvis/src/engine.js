@@ -40,6 +40,28 @@ async function resolveOpenCycles({ store, source, today, timeZone, dryRun }) {
   return result;
 }
 
+/** Reenvio manual de um envio que falhou ou ficou incerto (botão "Reenviar" do painel). */
+export async function resendOne({ id, store, channels, logger = console }) {
+  const row = store.getSendById(id);
+  if (!row) return { ok: false, error: 'Envio não encontrado' };
+  if (!['falhou', 'incerto'].includes(row.status)) return { ok: false, error: `Só dá para reenviar envio que falhou ou ficou incerto (este está "${row.status}")` };
+  const channel = channels.find((c) => c.name === row.channel);
+  if (!channel) return { ok: false, error: `Canal ${row.channel} não está ligado (CHANNELS)` };
+  if (row.channel === 'whatsapp' && !channel.simulated && !row.variables) return { ok: false, error: 'Envio antigo sem variáveis salvas: não dá para remontar o template' };
+  if (!store.claimManualResend(id)) return { ok: false, error: 'Outro reenvio deste item já está em andamento' };
+  const variables = row.variables ? JSON.parse(row.variables) : {};
+  const text = row.channel === 'email' && row.subject ? row.message.slice(row.subject.length + 2) : row.message;
+  try {
+    const r = await channel.send({ to: row.recipient, stage: row.stage, text, subject: row.subject || '', variables });
+    store.finishSend(id, { status: r.status, providerMessageId: r.providerMessageId, costCents: r.costCents });
+    logger.info(`[regua] reenvio manual ${id} (${row.channel}, ${row.stage}) → ${r.status}`);
+    return { ok: true, status: r.status };
+  } catch (err) {
+    store.finishSend(id, { status: 'falhou', error: err.message });
+    return { ok: false, error: `Falhou de novo: ${err.message}` };
+  }
+}
+
 /**
  * Executa a régua para o dia de `now`.
  * @returns resumo com as decisões de cada grupo (cliente + vencimento).
@@ -158,6 +180,8 @@ export async function runBilling({ now = new Date(), store, source, channels, co
           channel: channel.name,
           recipient: to,
           message: channel.name === 'email' ? `${subject}\n\n${text}` : text,
+          subject,
+          variables: vars,
           simulated: channel.simulated,
           runId,
           maxAttempts: config.maxAttempts,

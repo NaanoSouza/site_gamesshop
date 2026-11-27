@@ -103,6 +103,11 @@ const MIGRATIONS = [
     expires_at TEXT NOT NULL
   );
   `,
+  // 2: guarda o assunto e as variáveis de cada envio (para o botão "Reenviar" refazer o template da Meta).
+  `
+  ALTER TABLE sends ADD COLUMN subject TEXT;
+  ALTER TABLE sends ADD COLUMN variables TEXT;
+  `,
 ];
 
 export function openDb(path) {

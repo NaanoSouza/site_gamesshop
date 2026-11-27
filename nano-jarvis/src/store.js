@@ -155,26 +155,26 @@ export function createStore(db) {
      * Reserva o envio ANTES de chamar a API. Se outra execução já reservou (UNIQUE), devolve null e não envia.
      * Também pega de volta um envio que falhou, se ainda há tentativas.
      */
-    reserveSend({ clientId, dueDate, stage, channel, recipient, message, simulated, runId, maxAttempts }) {
+    reserveSend({ clientId, dueDate, stage, channel, recipient, message, subject, variables, simulated, runId, maxAttempts }) {
       const now = nowIso();
       return tx(db, () => {
         const existing = db.prepare('SELECT * FROM sends WHERE client_id = ? AND due_date = ? AND stage = ? AND channel = ?').get(clientId, dueDate, stage, channel);
         if (!existing) {
           const res = db
             .prepare(
-              `INSERT INTO sends (client_id, due_date, stage, channel, recipient, status, simulated, attempts, message, run_id, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, 'pendente', ?, 1, ?, ?, ?, ?)`,
+              `INSERT INTO sends (client_id, due_date, stage, channel, recipient, status, simulated, attempts, message, subject, variables, run_id, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, 'pendente', ?, 1, ?, ?, ?, ?, ?, ?)`,
             )
-            .run(clientId, dueDate, stage, channel, recipient, simulated ? 1 : 0, message, runId ?? null, now, now);
+            .run(clientId, dueDate, stage, channel, recipient, simulated ? 1 : 0, message, subject ?? null, variables ? JSON.stringify(variables) : null, runId ?? null, now, now);
           return Number(res.lastInsertRowid);
         }
         if (existing.status === 'falhou' && existing.attempts < maxAttempts) {
           const res = db
             .prepare(
-              `UPDATE sends SET status = 'pendente', attempts = attempts + 1, recipient = ?, message = ?, simulated = ?, run_id = ?, error = NULL, updated_at = ?
+              `UPDATE sends SET status = 'pendente', attempts = attempts + 1, recipient = ?, message = ?, subject = ?, variables = ?, simulated = ?, run_id = ?, error = NULL, updated_at = ?
                WHERE id = ? AND status = 'falhou'`,
             )
-            .run(recipient, message, simulated ? 1 : 0, runId ?? null, now, existing.id);
+            .run(recipient, message, subject ?? null, variables ? JSON.stringify(variables) : null, simulated ? 1 : 0, runId ?? null, now, existing.id);
           return res.changes ? existing.id : null;
         }
         return null;
@@ -189,6 +189,17 @@ export function createStore(db) {
         nowIso(),
         id,
       );
+    },
+    getSendById: (id) => db.prepare('SELECT * FROM sends WHERE id = ?').get(id),
+    /**
+     * Reenvio manual pelo painel: só de envio que FALHOU ou ficou INCERTO. Troca o status para "pendente"
+     * de forma atômica (dois cliques não reenviam duas vezes).
+     */
+    claimManualResend(id) {
+      const res = db
+        .prepare("UPDATE sends SET status = 'pendente', attempts = attempts + 1, error = NULL, updated_at = ? WHERE id = ? AND status IN ('falhou', 'incerto')")
+        .run(nowIso(), id);
+      return res.changes > 0;
     },
     /** Envio que ficou "pendente" (processo caiu no meio): não sabemos se saiu, então não repete. */
     markStalePendingAsUncertain(olderThanMs = 10 * 60_000) {

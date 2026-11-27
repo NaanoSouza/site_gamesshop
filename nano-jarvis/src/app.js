@@ -2,7 +2,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { timingSafeEqual, createHash } from 'node:crypto';
-import { runBilling } from './engine.js';
+import { runBilling, resendOne } from './engine.js';
+import { sendOwnerSummary } from './summary.js';
 import { verifySignature, handleVerify, handleEvent } from './webhook.js';
 import { nextRunAt, localDate } from './dates.js';
 import { STAGE_CODES, SKIP_REASON_LABELS } from './rules.js';
@@ -102,7 +103,15 @@ export function createApp({ config, store, source, channels, logger = console })
     if (!dryRun && running) throw new HttpError(409, 'A régua já está rodando');
     if (!dryRun) running = true;
     try {
-      return await runBilling({ now: now || new Date(), store, source, channels, config, trigger, dryRun, logger });
+      let summary;
+      try {
+        summary = await runBilling({ now: now || new Date(), store, source, channels, config, trigger, dryRun, logger });
+      } catch (err) {
+        if (trigger === 'cron') await sendOwnerSummary({ summary: { runDate: localDate(new Date(), config.timezone), status: 'erro', error: err.message }, config, logger });
+        throw err;
+      }
+      if (trigger === 'cron' && !dryRun && summary.status !== 'ja_em_execucao') await sendOwnerSummary({ summary, config, logger });
+      return summary;
     } finally {
       if (!dryRun) running = false;
     }
@@ -219,6 +228,14 @@ export function createApp({ config, store, source, channels, logger = console })
     'POST /api/cobrancas/run': async (req) => {
       await readJson(req);
       return runOnce({ trigger: 'manual', dryRun: false });
+    },
+    'POST /api/cobrancas/resend': async (req) => {
+      const body = await readJson(req);
+      const id = Number(body.id);
+      if (!Number.isInteger(id) || id < 1) throw new HttpError(400, 'Informe o id do envio');
+      const r = await resendOne({ id, store, channels, logger });
+      if (!r.ok) throw new HttpError(409, r.error);
+      return r;
     },
     'GET /api/clientes': async (_req, url) => {
       const q = String(url.searchParams.get('q') || '').trim();
