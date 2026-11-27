@@ -179,7 +179,7 @@ export async function runBilling({ now = new Date(), store, source, channels, co
         }
       }
 
-      if (!anyRecipient) {
+      if (!anyRecipient && !retryOnly) {
         entry.action = 'skip';
         entry.reason = 'sem_contato';
         summary.skipped.sem_contato = (summary.skipped.sem_contato || 0) + 1;

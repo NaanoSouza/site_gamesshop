@@ -75,6 +75,7 @@ function createAuthLimiter({ max = 10, windowMs = 15 * 60_000 } = {}) {
       return h.count >= max;
     },
     fail(ip) {
+      if (hits.size > 10_000) hits.clear(); // não deixa a memória crescer sem limite sob ataque
       const h = hits.get(ip);
       if (!h || Date.now() - h.first > windowMs) hits.set(ip, { first: Date.now(), count: 1 });
       else h.count += 1;
@@ -131,7 +132,8 @@ export function createApp({ config, store, source, channels, logger = console })
   const routes = {
     'GET /api/cobrancas/overview': async () => {
       const now = new Date();
-      const monthStart = `${localDate(now, config.timezone).slice(0, 7)}-01T00:00:00.000Z`;
+      // Meia-noite de São Paulo do dia 1º (UTC-3; o Brasil não tem mais horário de verão).
+      const monthStart = `${localDate(now, config.timezone).slice(0, 7)}-01T03:00:00.000Z`;
       const cycles = store.db.prepare('SELECT status, COUNT(*) AS n FROM cycles GROUP BY status').all();
       return {
         enabled: store.isEnabled(),
